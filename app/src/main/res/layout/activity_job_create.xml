@@ -8,7 +8,7 @@
 
     <EditText
         android:id="@+id/editTextJobTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="76dp"
         android:ems="10"
@@ -20,12 +20,14 @@
 
     <EditText
         android:id="@+id/editTextJobDescription"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="58dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="Job Description"
         android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/editTextJobTitle"
         app:layout_constraintTop_toBottomOf="@+id/editTextJobTitle" />
 
@@ -44,6 +46,7 @@
         android:id="@+id/editTextWage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="96dp"
         android:layout_marginTop="56dp"
         android:ems="10"
         android:hint="Service Fee"

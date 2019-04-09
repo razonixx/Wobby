@@ -55,7 +55,8 @@ public class JobEditFragment extends Fragment implements RetrieveJSONTask.Reques
     public void doRequest(View v) {
 
         RetrieveJSONTask task = new RetrieveJSONTask(this);
-        task.execute("http://10.0.2.2/jobs.json");
+        //task.execute("http://10.0.2.2/jobs.json");
+        task.execute("https://sheltered-retreat-56384.herokuapp.com/api/Job/");
     }
 
     @Override
@@ -66,9 +67,9 @@ public class JobEditFragment extends Fragment implements RetrieveJSONTask.Reques
                 String id = jsonArray.getJSONObject(i).getString("_id");
                 String title = jsonArray.getJSONObject(i).getString("title");
                 String snippet = jsonArray.getJSONObject(i).getString("snippet");
-                long wage = jsonArray.getJSONObject(i).getInt("wage");
-                float latitude = (float)jsonArray.getJSONObject(i).getDouble("lat");
-                float longitude = (float)jsonArray.getJSONObject(i).getDouble("long");
+                float wage = (float)jsonArray.getJSONObject(i).getDouble("wage");
+                double latitude = jsonArray.getJSONObject(i).getDouble("lat");
+                double longitude = jsonArray.getJSONObject(i).getDouble("long");
                 Job tempJob = new Job(id, title, snippet, wage, latitude, longitude);
                 jobArrayList.add(tempJob);
             }
@@ -89,8 +90,8 @@ public class JobEditFragment extends Fragment implements RetrieveJSONTask.Reques
         intent.putExtra("JOB_TITLE", jobArrayList.get(position).getJobTitle());
         intent.putExtra("JOB_SNIPPET", jobArrayList.get(position).getJobSnippet());
         intent.putExtra("JOB_WAGE", jobArrayList.get(position).getJobWage());
-        intent.putExtra("JOB_LAT", (float)jobArrayList.get(position).getJobLatLng().latitude);
-        intent.putExtra("JOB_LONG", (float)jobArrayList.get(position).getJobLatLng().longitude);
+        intent.putExtra("JOB_LAT", jobArrayList.get(position).getJobLatLng().latitude);
+        intent.putExtra("JOB_LONG", jobArrayList.get(position).getJobLatLng().longitude);
         startActivity(intent);
 
     }

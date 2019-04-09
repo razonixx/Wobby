@@ -31,7 +31,7 @@ public class RetrieveJSONTask extends AsyncTask<String, Void, JSONArray>{
     protected JSONArray doInBackground(String... strings) {
 
         for(int i = 0; i < strings.length; i++){
-            Log.wtf("STRINGS", strings[i]);
+            //Log.wtf("STRINGS", strings[i]);
         }
 
         // the actual request
@@ -39,10 +39,8 @@ public class RetrieveJSONTask extends AsyncTask<String, Void, JSONArray>{
         // parse data
         JSONArray result = null;
 
-
         try {
             URL url = new URL(strings[0]);
-
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             int code = connection.getResponseCode();
@@ -56,7 +54,7 @@ public class RetrieveJSONTask extends AsyncTask<String, Void, JSONArray>{
 
                 while((currentLine = br.readLine()) != null){
 
-                    Log.wtf("HTTP RESPONSE", currentLine);
+                    //Log.wtf("HTTP RESPONSE", currentLine);
                     builder.append(currentLine);
                 }
 

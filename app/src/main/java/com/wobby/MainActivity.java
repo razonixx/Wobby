@@ -23,7 +23,6 @@ public class MainActivity extends AppCompatActivity {
     final static String uri = "https://sheltered-retreat-56384.herokuapp.com";
     private TextView tv;
     private Button b1, b2;
-    private BackendManager bm;
 
     private Boolean isSignedIn;
 
@@ -62,10 +61,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        bm = new BackendManager(this);
-
-
-
     }
 
     @Override
@@ -75,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             case LOGIN_CODE:
                 if(resultCode == Activity.RESULT_OK){
                     tv.setText("Welcome back, " + data.getStringExtra("email"));
-                    bm.login(data.getStringExtra("email"), data.getStringExtra("password"));
+                    //bm.login(data.getStringExtra("email"), data.getStringExtra("password"));
 
                     isSignedIn = true;
                 }

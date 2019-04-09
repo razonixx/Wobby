@@ -3,6 +3,7 @@ package com.wobby;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,10 +36,19 @@ public class JobViewFragment extends Fragment implements RetrieveJSONTask.Reques
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_job_view, container, false);
+        final View v = inflater.inflate(R.layout.fragment_job_view, container, false);
 
         list = v.findViewById(R.id.listView);
         doRequest(v);
+
+        final SwipeRefreshLayout pullToRefresh = v.findViewById(R.id.pullToRefresh);
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                doRequest(v);
+                pullToRefresh.setRefreshing(false);
+            }
+        });
 
         return v;
     }
@@ -52,21 +62,21 @@ public class JobViewFragment extends Fragment implements RetrieveJSONTask.Reques
     public void doRequest(View v) {
 
         RetrieveJSONTask task = new RetrieveJSONTask(this);
-        task.execute("http://10.0.2.2/jobs.json");
+        //task.execute("http://10.0.2.2/jobs.json");
+        task.execute("https://sheltered-retreat-56384.herokuapp.com/api/Job/");
     }
 
     @Override
     public void requestDone(JSONArray jsonArray) {
-
         try {
             ArrayList<Job> jobArrayList = new ArrayList<>();
             for(int i = 0; i < jsonArray.length(); i++){
                 String id = jsonArray.getJSONObject(i).getString("_id");
                 String title = jsonArray.getJSONObject(i).getString("title");
                 String snippet = jsonArray.getJSONObject(i).getString("snippet");
-                long wage = jsonArray.getJSONObject(i).getInt("wage");
-                float latitude = (float)jsonArray.getJSONObject(i).getDouble("lat");
-                float longitude = (float)jsonArray.getJSONObject(i).getDouble("long");
+                float wage = (float)jsonArray.getJSONObject(i).getDouble("wage");
+                double latitude = jsonArray.getJSONObject(i).getDouble("lat");
+                double longitude = jsonArray.getJSONObject(i).getDouble("long");
                 Job tempJob = new Job(id, title, snippet, wage, latitude, longitude);
                 jobArrayList.add(tempJob);
             }
@@ -75,7 +85,8 @@ public class JobViewFragment extends Fragment implements RetrieveJSONTask.Reques
             list.setOnItemClickListener(this);
 
         } catch (JSONException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            Log.wtf("ERROR", e.toString());
         }
     }
 

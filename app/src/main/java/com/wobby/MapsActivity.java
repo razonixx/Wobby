@@ -1,9 +1,11 @@
 package com.wobby;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -11,6 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -29,6 +32,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements
@@ -36,9 +42,10 @@ public class MapsActivity extends FragmentActivity implements
         GoogleMap.OnMapClickListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener,
+        RetrieveJSONTask.RequestListener{
 
-    String title, snippet;
+    String id, title, snippet;
     float wage;
 
     private GoogleMap mMap;
@@ -50,7 +57,9 @@ public class MapsActivity extends FragmentActivity implements
     private Location lastLocation;
     private LocationRequest request;
     private String mode = "";
-    private DBHelper db;
+    private BackEndManager b;
+    private Intent startIntent;
+    private ArrayList<Job> jobArrayList;
 
 
     private FusedLocationProviderClient fusedClient;
@@ -73,20 +82,20 @@ public class MapsActivity extends FragmentActivity implements
                     .build();
         }
 
-        Intent intent = getIntent();
-        mode = intent.getStringExtra("MODE");
-        if(mode.equals("JOB_CREATE")){
-            title = intent.getStringExtra("JOB_TITLE");
-            snippet = intent.getStringExtra("JOB_SNIPPET");
-            wage = intent.getFloatExtra("JOB_WAGE", 0);
+        startIntent = getIntent();
+        mode = startIntent.getStringExtra("MODE");
+        if(mode.equals("JOB_EDIT") || mode.equals("JOB_CREATE")){
+            id = startIntent.getStringExtra("JOB_ID");
+            title = startIntent.getStringExtra("JOB_TITLE");
+            snippet = startIntent.getStringExtra("JOB_SNIPPET");
+            wage = startIntent.getFloatExtra("JOB_WAGE", 0);
         }
 
         request = LocationRequest.create();
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         request.setInterval(1000 * 5);
 
-        db = new DBHelper(getApplicationContext());
-
+        b = new BackEndManager(this);
     }
 
 
@@ -111,41 +120,83 @@ public class MapsActivity extends FragmentActivity implements
             @Override
             public void onInfoWindowClick(Marker marker) {
                 Intent intent = new Intent(getApplicationContext(), PinDetailActivity.class);
-                intent.putExtra("Title", marker.getTitle());
+                intent.putExtra("JOB_TITLE", marker.getTitle());
+                intent.putExtra("JOB_SNIPPET", marker.getSnippet());
+                for (Job job:jobArrayList) {
+                    if(marker.getTitle().equals(job.getJobTitle())){
+                        if(marker.getSnippet().equals(job.getJobSnippet())){
+                            intent.putExtra("JOB_WAGE", job.getJobWage());
+                        }
+                    }
+                }
                 startActivity(intent);
             }
         });
+
         if(mode.equals("JOB_SEEKER")){
-            refreshPins();
+            doRequest();
+        }
+        if(mode.equals("JOB_EDIT")){
+            MarkerOptions newMarker = (new MarkerOptions()
+                    .position(new LatLng(startIntent.getDoubleExtra("JOB_LAT", 0), startIntent.getDoubleExtra("JOB_LONG", 0)))
+                    .title(title)
+                    .snippet(snippet)
+                    .alpha(1f)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+            mMap.addMarker(newMarker);
         }
     }
 
     @Override
     public void onMapClick(LatLng latLng) {
-        if(mode.equals("JOB_PROVIDER")) {
-            MarkerOptions newMarker = (new MarkerOptions()
-                    .position(latLng)
-                    .title("TEMP")
-                    .snippet("TEST SNIPPET")
-                    .alpha(1f)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-
-            mMap.addMarker(newMarker);
-            db.add(newMarker);
+        if(mode.equals("JOB_EDIT")){
+            Job newJob = new Job(id, title, snippet, wage, latLng);
+            Log.wtf("Marker JSON", newJob.jobToJSON());
+            editJob(newJob);
+            Toast.makeText(getApplicationContext(), "Job edited successfully", Toast.LENGTH_SHORT).show();
+            finish();
         }
         if(mode.equals("JOB_CREATE")){
             Job newJob = new Job(title, snippet, wage, latLng);
             Log.wtf("Marker JSON", newJob.jobToJSON());
-            Toast.makeText(getApplicationContext(), "Job added succesfully", Toast.LENGTH_SHORT).show();
+            postJob(newJob);
+            Toast.makeText(getApplicationContext(), "Job created successfully", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
 
-    private void refreshPins(){
-        ArrayList<MarkerOptions> pins = db.getAllPins();
-        for (int i = 0; i < pins.size(); i++){
-            mMap.addMarker(pins.get(i));
-        }
+    @SuppressLint("StaticFieldLeak")
+    public void postJob(final Job job) {
+
+        new AsyncTask<String, Void, String>() {
+
+            @Override
+            protected String doInBackground(String... strings) {
+                return b.Create_Job(job.getJobTitle(), job.getJobSnippet(), job.getJobLatLng().latitude, job.getJobLatLng().longitude, (double)job.getJobWage());
+            }
+            @Override
+            protected void onPostExecute(String r) {
+                super.onPostExecute(r);
+                Log.wtf("POST RESULT", r);
+            }
+        }.execute();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    public void editJob(final Job job) {
+
+        new AsyncTask<String, Void, String>() {
+
+            @Override
+            protected String doInBackground(String... strings) {
+                return b.Modify_Job(job.getJobId(),job.getJobTitle(), job.getJobSnippet(), job.getJobLatLng().latitude, job.getJobLatLng().longitude, (double)job.getJobWage());
+            }
+            @Override
+            protected void onPostExecute(String r) {
+                super.onPostExecute(r);
+                Log.wtf("POST RESULT", r);
+            }
+        }.execute();
     }
 
     public void setMyLocation() {
@@ -194,6 +245,7 @@ public class MapsActivity extends FragmentActivity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(client, request, this);
         LatLng userPosition = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 18));
+
     }
 
     @Override
@@ -217,206 +269,49 @@ public class MapsActivity extends FragmentActivity implements
     protected void onStart() {
         super.onStart();
         client.connect();
-        Log.wtf("CONNECTION", "START");
+        doRequest();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         client.disconnect();
-        Log.wtf("CONNECTION", "STOP");
+    }
+
+    public void doRequest() {
+        RetrieveJSONTask task = new RetrieveJSONTask(this);
+        //task.execute("http://10.0.2.2/jobs.json");
+        task.execute("https://sheltered-retreat-56384.herokuapp.com/api/Job/");
+    }
+
+    @Override
+    public void requestDone(JSONArray jsonArray) {
+        try {
+            jobArrayList = new ArrayList<>();
+            for(int i = 0; i < jsonArray.length(); i++){
+                String id = jsonArray.getJSONObject(i).getString("_id");
+                String title = jsonArray.getJSONObject(i).getString("title");
+                String snippet = jsonArray.getJSONObject(i).getString("snippet");
+                float wage = (float)jsonArray.getJSONObject(i).getDouble("wage");
+                double latitude = jsonArray.getJSONObject(i).getDouble("lat");
+                double longitude = jsonArray.getJSONObject(i).getDouble("long");
+                Job tempJob = new Job(id, title, snippet, wage, latitude, longitude);
+                jobArrayList.add(tempJob);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        if(mode.equals("JOB_SEEKER")) {
+            for (Job job : jobArrayList) {
+
+                MarkerOptions newMarker = (new MarkerOptions()
+                        .position(job.getJobLatLng())
+                        .title(job.getJobTitle())
+                        .snippet(job.getJobSnippet())
+                        .alpha(1f)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                mMap.addMarker(newMarker);
+            }
+        }
     }
 }
-
-
-/*
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import java.util.ArrayList;
-
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
-        GoogleMap.OnMapClickListener,
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
-
-    private GoogleMap mMap;
-    private DBHelper db;
-    private String mode  = ""; //JOB_PROVIDER or JOB_SEEKER
-    private GoogleApiClient client;
-    private Location lastLocation;
-    private LocationRequest request;
-
-    private FusedLocationProviderClient fusedClient;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        Intent intent = getIntent();
-        mode = intent.getStringExtra("MODE");
-
-        if(client == null){
-
-            client = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
-
-        request = LocationRequest.create();
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        request.setInterval(1000 * 5);
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        db = new DBHelper(getApplicationContext());
-        setMyLocation();
-        LatLng userPosition = new LatLng(lastLocation.getLongitude(), lastLocation.getLatitude());
-        final CameraPosition TEC = new CameraPosition.Builder().target(userPosition).zoom(15.5f).bearing(0).tilt(25).build();
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(TEC));
-
-
-        if(mode == "JOB_SEEKER") {
-            // Add a marker in Tec and move the camera
-            LatLng tec = new LatLng(20.734574, -103.455687);
-            mMap.addMarker(new MarkerOptions().position(tec).title("ITESM GDL").snippet("Aqui estudiamos"));
-
-            refreshPins();
-            mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-                @Override
-                public void onInfoWindowClick(Marker marker) {
-                    Intent intent = new Intent(getApplicationContext(), PinDetailActivity.class);
-                    intent.putExtra("Title", marker.getTitle());
-                    startActivity(intent);
-                }
-            });
-        }
-    }
-
-    private void refreshPins(){
-        ArrayList<MarkerOptions> pins = db.getAllPins();
-        for (int i = 0; i < pins.size(); i++){
-            mMap.addMarker(pins.get(i));
-        }
-    }
-
-    public void setMyLocation() {
-
-        // enable the location layer on google maps
-        // in order to use location layer from google maps we need as an app
-        // the location permission
-        // -COARSE
-        // -FINE
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED){
-
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-        } else {
-            mMap.setMyLocationEnabled(true);
-        }
-    }
-
-    public void onRequestPermissionsResult(int requestCode, String[] p, int[] r){
-
-        if(requestCode == 0 && r[0] == PackageManager.PERMISSION_GRANTED){
-
-            Log.wtf("PERMISSIONS", "GRANTED");
-
-        } else {
-            Log.wtf("PERMISSIONS", "DENIED");
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED)
-            return;
-
-        lastLocation = LocationServices.FusedLocationApi.getLastLocation(client);
-
-        if(lastLocation != null){
-
-            Log.wtf("LAST LOCATION", lastLocation.getLatitude() + ", " +
-                    lastLocation.getLongitude());
-        }
-
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(client, request, this);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-        MarkerOptions marker = new MarkerOptions().position(latLng).title("Custom location").snippet("test").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        mMap.addMarker(marker);
-        db.add(marker);
-        refreshPins();
-    }
-}
-*/

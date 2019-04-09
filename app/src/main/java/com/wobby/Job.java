@@ -13,12 +13,20 @@ public class Job {
     private float wage;
     private LatLng latLng;
 
-    public Job(String id, String title, String snippet, float wage, float latitude, float longitude){
+    public Job(String id, String title, String snippet, float wage, double latitude, double longitude){
         this.id = id;
         this.title = title;
         this.snippet = snippet;
         this.wage = wage;
         this.latLng = new LatLng(latitude, longitude);
+    }
+
+    public Job(String id, String title, String snippet, float wage, LatLng latLng){
+        this.id = id;
+        this.title = title;
+        this.snippet = snippet;
+        this.wage = wage;
+        this.latLng = latLng;
     }
 
     public Job(String title, String snippet, float wage, LatLng latLng){

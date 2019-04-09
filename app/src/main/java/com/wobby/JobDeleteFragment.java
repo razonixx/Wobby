@@ -1,10 +1,14 @@
 package com.wobby;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +32,7 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
     private Context context;
     private ListView list;
     private ArrayList<Job> jobArrayList;
+    private BackEndManager b;
 
 
     public JobDeleteFragment() {
@@ -41,6 +46,7 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
 
         list = v.findViewById(R.id.listView);
         doRequest(v);
+        b = new BackEndManager(context);
 
         return v;
     }
@@ -54,7 +60,8 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
     public void doRequest(View v) {
 
         RetrieveJSONTask task = new RetrieveJSONTask(this);
-        task.execute("http://10.0.2.2/jobs.json");
+        //task.execute("http://10.0.2.2/jobs.json");
+        task.execute("https://sheltered-retreat-56384.herokuapp.com/api/Job/");
     }
 
     @Override
@@ -90,7 +97,8 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        Toast.makeText(context, "Job with id " + jobArrayList.get(position).getJobId() + " deleted ", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(context, "Job with id " + jobArrayList.get(position).getJobId() + " deleted ", Toast.LENGTH_SHORT).show();
+                        deleteJob(jobArrayList.get(position).getJobId());
                     }})
                 .setNegativeButton("NO", null).show();
     }
@@ -101,5 +109,23 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    public void deleteJob(final String jobID) {
+
+        new AsyncTask<String, Void, String>() {
+
+            @Override
+            protected String doInBackground(String... strings) {
+                return b.Delete_Job(jobID);
+            }
+            @Override
+            protected void onPostExecute(String r) {
+                super.onPostExecute(r);
+                Log.wtf("POST RESULT", r);
+            }
+        }.execute();
+        doRequest(getView());
     }
 }
