@@ -4,7 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -21,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,6 +33,10 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -193,7 +200,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@");
+        return true;
     }
 
     private boolean isPasswordValid(String password) {
@@ -209,10 +216,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        // The ViewPropertyAnimator APIs are not available, so simply show
+        // and hide the relevant UI components.
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -286,13 +293,42 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
+            BackEndManager b = new BackEndManager();
+
+            JSONObject login_data = null;
+
+            //Store preferences
+            SharedPreferences prefs = getSharedPreferences("Preferences", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
+
+                login_data = new JSONObject(b.Login(mEmail, mPassword));
+
+                String token = login_data.getString("token");
+                JSONObject user_data = login_data.getJSONObject("user");
+
+                String name = user_data.getString("name");
+                String last_name = user_data.getString("last_name");
+                String username = user_data.getString("username");
+                Boolean isJobProvider = user_data.getBoolean("isJobProvider");
+                Boolean isWorker = user_data.getBoolean("isWorker");
+
+
+                editor.putString("token", token);
+                editor.putString("name", name);
+                editor.putString("last_name", last_name);
+                editor.putString("username", username);
+                editor.putBoolean("isJobProvider", isJobProvider);
+                editor.putBoolean("isWorker", isWorker);
+
+
+                editor.apply();
+            } catch (JSONException e) {
                 return false;
             }
+
+            Log.e("Login response", login_data.toString());
 
             for (String credential : DUMMY_CREDENTIALS) {
                 String[] pieces = credential.split(":");
@@ -310,6 +346,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
+
 
             if (success) {
                 //Send data back
@@ -331,4 +368,3 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 }
-

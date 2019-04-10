@@ -36,7 +36,7 @@ public class JobEditActivity extends AppCompatActivity {
         editTextTitle.setText(startIntent.getStringExtra("JOB_TITLE"));
         editTextDescription.setText(startIntent.getStringExtra("JOB_SNIPPET"));
         editTextWage.setText(String.valueOf(startIntent.getFloatExtra("JOB_WAGE", 0)));
-        b = new BackEndManager(this);
+        b = new BackEndManager();
 
         b3.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -20,6 +20,5 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_job_provider"
-        app:menu="@menu/activity_job_provider_drawer" />
-
+        app:menu="@menu/activity_job_provider_drawer"/>
 </android.support.v4.widget.DrawerLayout>

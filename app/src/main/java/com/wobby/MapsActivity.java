@@ -95,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         request.setInterval(1000 * 5);
 
-        b = new BackEndManager(this);
+        b = new BackEndManager();
     }
 
 
@@ -111,9 +111,10 @@ public class MapsActivity extends FragmentActivity implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        setMyLocation();
+        client.connect();
 
         //LatLng classroom = new LatLng(20.734540, -103.455803);
-        setMyLocation();
 
         mMap.setOnMapClickListener(this);
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
@@ -213,17 +214,6 @@ public class MapsActivity extends FragmentActivity implements
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             mMap.setMyLocationEnabled(true);
-        }
-    }
-
-    public void onRequestPermissionsResult(int requestCode, String[] p, int[] r){
-
-        if(requestCode == 0 && r[0] == PackageManager.PERMISSION_GRANTED){
-
-            Log.wtf("PERMISSIONS", "GRANTED");
-
-        } else {
-            Log.wtf("PERMISSIONS", "DENIED");
         }
     }
 

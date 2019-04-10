@@ -23,10 +23,9 @@ public class BackEndManager {
     //private String API_URL = "http://10.0.2.2:5000/";
 
     private String API_URL = "https://sheltered-retreat-56384.herokuapp.com/";
-    Context context;
 
-    public BackEndManager(Context context) {
-        this.context = context;
+    public BackEndManager() {
+
     }
 
     public String Create_Job(String title, String snippet, Double lat, Double lon, Double wage) {
@@ -232,22 +231,10 @@ public class BackEndManager {
             Log.e("FATAL", e.toString());
         }
 
-
-        JSONObject data = null;
-
-        try {
-            data = new JSONObject(response);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        try {
-            return data.getString("token");
-        } catch (JSONException e) {
-            return "NULL";
-        }
+        return response;
+        //return data.getString("token");
 
     }
-
 
     public String GetJobs() {
         String result = "";

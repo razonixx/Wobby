@@ -3,26 +3,48 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/job_new"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="New Job" />
-        <item
-            android:id="@+id/job_view"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="View Active Jobs" />
-        <item
-            android:id="@+id/job_update"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Edit Active Jobs" />
-        <item
-            android:id="@+id/job_delete"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Delete Active Jobs" />
-    </group>
+    <item android:title="Your Active Jobs">
+        <menu android:checkableBehavior="single">
+            <item
+                android:id="@+id/job_new"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="New Job"
+                android:visible="false"/>
+            <item
+                android:id="@+id/job_view"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="View Active Jobs"
+                android:visible="false"/>
+            <item
+                android:id="@+id/job_update"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="Edit Active Jobs"
+                android:visible="false"/>
+            <item
+                android:id="@+id/job_delete"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="Delete Active Jobs"
+                android:visible="false"/>
 
-    <item android:title="Communicate">
+        </menu>
+    </item>
+
+    <item android:title="Look for Jobs">
+        <menu>
+            <item
+                android:id="@+id/job_seeker_near"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="View Jobs Near You"
+                android:visible="false"/>
+            <item
+                android:id="@+id/job_seeker_map"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="View Map of Jobs"
+                android:visible="false"/>
+        </menu>
+    </item>
+
+    <item android:title="Share on Social Media">
         <menu>
             <item
                 android:id="@+id/job_share"
@@ -32,3 +54,5 @@
     </item>
 
 </menu>
+
+

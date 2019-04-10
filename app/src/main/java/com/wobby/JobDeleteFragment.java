@@ -46,7 +46,7 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
 
         list = v.findViewById(R.id.listView);
         doRequest(v);
-        b = new BackEndManager(context);
+        b = new BackEndManager();
 
         return v;
     }
