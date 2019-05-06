@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,6 +46,14 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
         View v = inflater.inflate(R.layout.fragment_job_delete, container, false);
 
         list = v.findViewById(R.id.listView);
+        final SwipeRefreshLayout pullToRefresh = v.findViewById(R.id.pullToRefresh);
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                doRequest(getView());
+                pullToRefresh.setRefreshing(false);
+            }
+        });
         doRequest(v);
         b = new BackEndManager();
 

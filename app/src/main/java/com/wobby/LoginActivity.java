@@ -313,7 +313,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 String username = user_data.getString("username");
                 Boolean isJobProvider = user_data.getBoolean("isJobProvider");
                 Boolean isWorker = user_data.getBoolean("isWorker");
+                String profile_img = user_data.getString("profile_img");
 
+                //Log.wtf("USER DATA",  user_data.toString());
 
                 editor.putString("token", token);
                 editor.putString("name", name);
@@ -321,10 +323,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 editor.putString("username", username);
                 editor.putBoolean("isJobProvider", isJobProvider);
                 editor.putBoolean("isWorker", isWorker);
+                editor.putString("profile_img", profile_img);
 
 
                 editor.apply();
             } catch (JSONException e) {
+                Log.wtf("ERROR", e.toString());
                 return false;
             }
 

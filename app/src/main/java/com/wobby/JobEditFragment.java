@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ public class JobEditFragment extends Fragment implements RetrieveJSONTask.Reques
     private Context context;
     private ListView list;
     ArrayList<Job> jobArrayList;
+    JSONArray old = null;
 
 
 
@@ -42,6 +44,14 @@ public class JobEditFragment extends Fragment implements RetrieveJSONTask.Reques
         list = v.findViewById(R.id.listView);
         jobArrayList = new ArrayList<>();
         doRequest(v);
+        final SwipeRefreshLayout pullToRefresh = v.findViewById(R.id.pullToRefresh);
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                doRequest(getView());
+                pullToRefresh.setRefreshing(false);
+            }
+        });
 
         return v;
     }
@@ -61,7 +71,7 @@ public class JobEditFragment extends Fragment implements RetrieveJSONTask.Reques
 
     @Override
     public void requestDone(JSONArray jsonArray) {
-
+        jobArrayList = new ArrayList<>();
         try {
             for(int i = 0; i < jsonArray.length(); i++){
                 String id = jsonArray.getJSONObject(i).getString("_id");

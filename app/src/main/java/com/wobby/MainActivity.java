@@ -48,11 +48,13 @@ public class MainActivity extends AppCompatActivity {
                             prefs.getBoolean("isJobProvider", false)       +       "\n" +
                             prefs.getBoolean("isWorker", false)
             );
+            //Log.wtf("BASE64",prefs.getString("profile_img", "No Image Found") + "\n");
             Intent intent = new Intent(getApplicationContext(), JobProviderActivity.class);
             intent.putExtra("USER_FIRST_NAME", prefs.getString("name", ""));
             intent.putExtra("USER_LAST_NAME", prefs.getString("last_name", ""));
             intent.putExtra("USERNAME", prefs.getString("username", ""));
             intent.putExtra("ISJOBPROVIDER", prefs.getBoolean("isJobProvider", false));
+            intent.putExtra("PROVIDERIMAGE", prefs.getString("profile_img", ""));
             intent.putExtra("ISJOBSEEKER", prefs.getBoolean("isWorker", false));
             startActivity(intent);
             finish();

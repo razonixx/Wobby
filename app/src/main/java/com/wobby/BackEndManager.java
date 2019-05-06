@@ -328,4 +328,56 @@ public class BackEndManager {
         Log.e("R",arr.toString());
         return arr;
     }
+
+    public String Post_Image(String username, String image) {
+        String response = "";
+
+        String params = "profile_img="+image;
+
+
+        byte[] postData = params.getBytes(StandardCharsets.UTF_8);
+        int postDataLength = postData.length;
+
+        String endpoint = API_URL + "api/" + "user/" + username;
+        Log.e("URL", endpoint);
+        try {
+            URL url = new URL(endpoint);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setInstanceFollowRedirects(false);
+            //Used to override for patch requests
+            conn.setRequestProperty("X-HTTP-Method-Override", "PATCH");
+            conn.setRequestMethod("PATCH");
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("charset", "utf-8");
+            conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+            conn.setUseCaches(false);
+            DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+            wr.write(postData);
+
+            int status = conn.getResponseCode();
+            Log.e("Status", Integer.toString(status));
+
+            InputStreamReader in;
+
+            if (status >= 400) {
+                in = new InputStreamReader(conn.getErrorStream());
+            } else {
+                in = new InputStreamReader(conn.getInputStream());
+            }
+
+
+            BufferedReader br = new BufferedReader(in);
+            String text = "";
+            while ((text = br.readLine()) != null) {
+                response += text;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("FATAL", e.toString());
+        }
+
+        return response;
+    }
 }
