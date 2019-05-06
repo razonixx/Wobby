@@ -1,6 +1,9 @@
 package com.wobby;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -14,6 +17,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.FacebookSdk;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
@@ -26,6 +32,7 @@ public class JobViewFragment extends Fragment implements RetrieveJSONTask.Reques
 
     private Context context;
     private ListView list;
+    private ArrayList<Job> jobArrayList;
 
 
 
@@ -69,7 +76,7 @@ public class JobViewFragment extends Fragment implements RetrieveJSONTask.Reques
     @Override
     public void requestDone(JSONArray jsonArray) {
         try {
-            ArrayList<Job> jobArrayList = new ArrayList<>();
+            jobArrayList = new ArrayList<>();
             for(int i = 0; i < jsonArray.length(); i++){
                 String id = jsonArray.getJSONObject(i).getString("_id");
                 String title = jsonArray.getJSONObject(i).getString("title");
@@ -91,8 +98,28 @@ public class JobViewFragment extends Fragment implements RetrieveJSONTask.Reques
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Toast.makeText(context, "position: " + position + " id: " + id, Toast.LENGTH_SHORT).show();
+    public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+        new AlertDialog.Builder(context)
+                .setTitle("Share Job")
+                .setMessage("Are you sure you want to share this job on Facebook?")
+                .setIcon(android.R.drawable.ic_menu_share)
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        FacebookSdk.sdkInitialize(context);
+                        ShareDialog shareDialog;
+                        shareDialog = new ShareDialog(getActivity());
+                        ShareLinkContent linkContent = new ShareLinkContent.Builder()
+                                .setQuote(jobArrayList.get(position).getJobTitle())
+                                .setContentDescription(jobArrayList.get(position).getJobSnippet())
+                                .setContentUrl(Uri.parse("http://www.google.com/maps/place/" + jobArrayList.get(position).getJobLatLng().latitude + "," + jobArrayList.get(position).getJobLatLng().longitude)).build();
+
+                        if(ShareDialog.canShow(ShareLinkContent.class)){
+                            shareDialog.show(linkContent);
+                        }
+                    }
+                })
+                .setNegativeButton("NO", null).show();
     }
 
     @Override

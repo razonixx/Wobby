@@ -44,7 +44,7 @@
         </menu>
     </item>
 
-    <item android:title="Share on Social Media">
+    <item android:title="Share on Social Media" android:visible="false">
         <menu>
             <item
                 android:id="@+id/job_share"

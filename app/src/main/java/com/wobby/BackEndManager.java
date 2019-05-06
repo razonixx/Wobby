@@ -281,4 +281,51 @@ public class BackEndManager {
     public String Login() {
         return "";
     }
+
+    public JSONArray Close_Jobs(String lat, String lon, Double distance) {
+        ///api/Job/closest?long=10&lat=10.01&distance=10000 200 6.944 ms - 196
+        String result = "";
+        String endpoint = API_URL + "api/" + "Job/" + "closest?" + "long=" + lon + "&" + "lat=" + lat + "&distance=" + distance;
+        Log.e("Closest Endpoint", endpoint);
+        try {
+            URL url = new URL(endpoint);
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            int code = connection.getResponseCode();
+            if(code == HttpURLConnection.HTTP_OK){
+
+                // information can be retrieved from a stream
+                InputStream is = connection.getInputStream();
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+                StringBuilder builder = new StringBuilder();
+                String currentLine = "";
+
+                while((currentLine = br.readLine()) != null){
+                    Log.i("HTTP RESPONSE", currentLine);
+                    builder.append(currentLine);
+                }
+
+                result = builder.toString();
+            }
+
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.e("Response", result);
+
+        JSONArray arr = null;
+        try {
+            JSONObject data = new JSONObject(result);
+            arr = data.getJSONArray("jobs");
+        } catch (JSONException e) {
+
+        }
+        Log.e("R",arr.toString());
+        return arr;
+    }
 }

@@ -73,9 +73,9 @@ public class JobDeleteFragment extends Fragment implements RetrieveJSONTask.Requ
                 String id = jsonArray.getJSONObject(i).getString("_id");
                 String title = jsonArray.getJSONObject(i).getString("title");
                 String snippet = jsonArray.getJSONObject(i).getString("snippet");
-                long wage = jsonArray.getJSONObject(i).getInt("wage");
-                float latitude = (float)jsonArray.getJSONObject(i).getDouble("lat");
-                float longitude = (float)jsonArray.getJSONObject(i).getDouble("long");
+                float wage = (float)jsonArray.getJSONObject(i).getDouble("wage");
+                double latitude = jsonArray.getJSONObject(i).getDouble("lat");
+                double longitude = jsonArray.getJSONObject(i).getDouble("long");
                 Job tempJob = new Job(id, title, snippet, wage, latitude, longitude);
                 jobArrayList.add(tempJob);
             }

@@ -2,7 +2,9 @@ package com.wobby;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -235,6 +237,12 @@ public class MapsActivity extends FragmentActivity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(client, request, this);
         LatLng userPosition = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userPosition, 18));
+
+        if(mode.equals("GET_POSITION")){
+            startIntent.putExtra("CurrentLat", lastLocation.getLatitude());
+            startIntent.putExtra("CurrentLong",  lastLocation.getLongitude());
+            finish();
+        }
 
     }
 

@@ -55,10 +55,26 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("ISJOBPROVIDER", prefs.getBoolean("isJobProvider", false));
             intent.putExtra("ISJOBSEEKER", prefs.getBoolean("isWorker", false));
             startActivity(intent);
+            finish();
         }
 
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
+
+            b2 = findViewById(R.id.button2);
+            b2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), JobProviderActivity.class);
+                    intent.putExtra("USER_FIRST_NAME", prefs.getString("name", ""));
+                    intent.putExtra("USER_LAST_NAME", prefs.getString("last_name", ""));
+                    intent.putExtra("USERNAME", prefs.getString("username", ""));
+                    intent.putExtra("ISJOBPROVIDER", prefs.getBoolean("isJobProvider", false));
+                    intent.putExtra("ISJOBSEEKER", prefs.getBoolean("isWorker", false));
+                    startActivity(intent);
+                    finish();
+                }
+            });
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
